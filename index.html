@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KAB Banking System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #16213e;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 600; }
+    header span { font-size: 0.85rem; opacity: 0.6; }
+
+    nav {
+      background: #0f3460;
+      display: flex;
+      gap: 2px;
+      padding: 0 2rem;
+      overflow-x: auto;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.65);
+      padding: 0.75rem 1.2rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    nav button:hover  { color: white; }
+    nav button.active { color: white; border-bottom-color: #e94560; }
+
+    main {
+      max-width: 560px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      margin-bottom: 1rem;
+    }
+    .card h2 { font-size: 1rem; margin-bottom: 1.2rem; color: #0f3460; }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      color: #555;
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+    input {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #dde1ea;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: #0f3460; }
+
+    .btn {
+      display: inline-block;
+      margin-top: 1.2rem;
+      padding: 0.65rem 1.4rem;
+      background: #0f3460;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+    }
+    .btn:hover { background: #16213e; }
+
+    .result {
+      margin-top: 1rem;
+      padding: 0.9rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .result.ok    { background: #e6f9f0; color: #0a5c36; border-left: 4px solid #1abc6e; }
+    .result.error { background: #fdecea; color: #7b1a14; border-left: 4px solid #e94560; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    th {
+      text-align: left;
+      padding: 8px 10px;
+      background: #f0f3f8;
+      color: #444;
+      font-weight: 600;
+    }
+    td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .balance-amount {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0f3460;
+      margin: 0.4rem 0;
+    }
+    .balance-label { font-size: 0.82rem; color: #888; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>KAB Banking System</h1>
+    <span>Introduction to Programming — Final Project</span>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('admin')">🔐 Admin Login</button>
+  <button onclick="showTab('create')">Create Account</button>
+  <button onclick="showTab('deposit')">Deposit</button>
+  <button onclick="showTab('withdraw')">Withdraw</button>
+  <button onclick="showTab('transfer')">Transfer</button>
+  <button onclick="showTab('balance')">Balance</button>
+  <button onclick="showTab('delete')">Delete Account</button>
+  <button onclick="showTab('accounts')">All Accounts</button>
+  <button onclick="showTab('history')">History</button>
+</nav>
+
+<main>
+
+  <!-- Admin Login -->
+  <div id="tab-admin" class="section active">
+    <div class="card">
+      <h2>🔐 Admin Access</h2>
+      <label>Admin Password</label>
+      <input id="admin-pass" type="password" placeholder="Enter admin password"/>
+      <button class="btn" onclick="adminLogin()">Login to Admin</button>
+      <div id="r-admin" class="result"></div>
+      <div id="admin-panel" style="display:none;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #dde1ea">
+        <p style="font-size:0.9rem;color:#0f3460;margin-bottom:1rem"><strong>✓ Admin authenticated</strong></p>
+        <button class="btn" style="background:#e94560;margin-bottom:0.5rem" onclick="listAccounts()">View All Accounts</button>
+        <button class="btn" style="background:#ff6b6b" onclick="loadHistory()">View All Transactions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Account -->
+  <div id="tab-create" class="section">
+    <div class="card">
+      <h2>Open a New Account</h2>
+      <label>Full name</label>
+      <input id="c-name" type="text" placeholder="e.g. Alice Nakamura"/>
+      <label>Initial deposit (UGX)</label>
+      <input id="c-deposit" type="number" placeholder="e.g. 50000"/>
+      <label>Set a 4-digit PIN</label>
+      <input id="c-pin" type="password" maxlength="4" placeholder="****"/>
+      <button class="btn" onclick="createAccount()">Create Account</button>
+      <div id="r-create" class="result"></div>
+    </div>
+  </div>
+
+  <!-- Deposit -->
+  <div id="tab-deposit" class="section">
+    <div class="card">
+      <h2>Deposit Money</h2>
+      <label>Account number</label>
+      <input id="d-acc" type="number" placeholder="e.g. 1001"/>
+      <label>Amount (UGX)</label>
+      <input id="d-amount" type="number" placeholder="e.g. 20000"/>
+      <button class="btn" onclick="deposit()">Deposit</button>
+      <div id="r-deposit" class="result"></div>
+    </div>
+  </div>
+
+  <!-- Withdraw -->
+  <div id="tab-withdraw" class="section">
+    <div class="card">
+      <h2>Withdraw Money</h2>
+      <label>Account number</label>
+      <input id="w-acc" type="number" placeholder="e.g. 1001"/>
+      <label>Amount (UGX)</label>
+      <input id="w-amount" type="number" placeholder="e.g. 5000"/>
+      <label>PIN</label>
+      <input id="w-pin" type="password" maxlength="4" placeholder="****"/>
+      <button class="btn" onclick="withdraw()">Withdraw</button>
+      <div id="r-withdraw" class="result"></div>
+    </div>
+  </div>
+
+  <!-- Transfer -->
+  <div id="tab-transfer" class="section">
+    <div class="card">
+      <h2>Transfer Funds</h2>
+      <label>From account number</label>
+      <input id="t-from" type="number" placeholder="e.g. 1001"/>
+      <label>To account number</label>
+      <input id="t-to" type="number" placeholder="e.g. 1002"/>
+      <label>Amount (UGX)</label>
+      <input id="t-amount" type="number" placeholder="e.g. 10000"/>
+      <label>Your PIN</label>
+      <input id="t-pin" type="password" maxlength="4" placeholder="****"/>
+      <button class="btn" onclick="transfer()">Transfer</button>
+      <div id="r-transfer" class="result"></div>
+    </div>
+  </div>
+
+  <!-- Balance -->
+  <div id="tab-balance" class="section">
+    <div class="card">
+      <h2>Check Balance</h2>
+      <label>Account number</label>
+      <input id="b-acc" type="number" placeholder="e.g. 1001"/>
+      <label>PIN</label>
+      <input id="b-pin" type="password" maxlength="4" placeholder="****"/>
+      <button class="btn" onclick="checkBalance()">View Balance</button>
+      <div id="r-balance" class="result"></div>
+    </div>
+  </div>
+
+  <!-- Delete Account -->
+  <div id="tab-delete" class="section">
+    <div class="card">
+      <h2>⚠️ Delete Account</h2>
+      <p style="color:#666;font-size:0.9rem;margin-bottom:1.2rem">This action is permanent and cannot be undone.</p>
+      <label>Account number</label>
+      <input id="del-acc" type="number" placeholder="e.g. 1001"/>
+      <label>PIN (to confirm)</label>
+      <input id="del-pin" type="password" maxlength="4" placeholder="****"/>
+      <button class="btn" style="background:#e94560" onclick="deleteAccount()">Delete Account Permanently</button>
+      <div id="r-delete" class="result"></div>
+    </div>
+  </div>
+
+  <!-- All Accounts -->
+  <div id="tab-accounts" class="section">
+    <div class="card">
+      <h2>All Accounts</h2>
+      <button class="btn" onclick="listAccounts()" style="margin-top:0">Refresh</button>
+      <div id="r-accounts" style="margin-top:1rem"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div id="tab-history" class="section">
+    <div class="card">
+      <h2>Transaction History</h2>
+      <button class="btn" onclick="loadHistory()" style="margin-top:0">Load History</button>
+      <div id="r-history" style="margin-top:1rem"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  /* ── Tab switching ───────────────────────────── */
+  function showTab(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  /* ── API helper ──────────────────────────────── */
+  async function api(endpoint, method, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch('/api/' + endpoint, opts);
+    return res.json();
+  }
+
+  /* ── Show result ─────────────────────────────── */
+  function showResult(id, data, extraHtml) {
+    const el = document.getElementById(id);
+    el.style.display = 'block';
+    if (data.status === 'ok') {
+      el.className = 'result ok';
+      el.innerHTML = (data.message || 'Success') + (extraHtml || '');
+    } else {
+      el.className = 'result error';
+      el.innerHTML = data.message || 'An error occurred.';
+    }
+  }
+
+  /* ── Admin Login ─────────────────────────────── */
+  async function adminLogin() {
+    const pass = document.getElementById('admin-pass').value;
+    const data = await api('admin_login', 'POST', { password: pass });
+    const resultEl = document.getElementById('r-admin');
+    const panelEl = document.getElementById('admin-panel');
+    
+    if (data.authenticated) {
+      resultEl.style.display = 'block';
+      resultEl.className = 'result ok';
+      resultEl.innerHTML = 'Admin login successful! Access granted.';
+      panelEl.style.display = 'block';
+    } else {
+      resultEl.style.display = 'block';
+      resultEl.className = 'result error';
+      resultEl.innerHTML = data.message || 'Invalid password';
+      panelEl.style.display = 'none';
+    }
+  }
+
+  /* ── Create account ──────────────────────────── */
+  async function createAccount() {
+    const data = await api('create', 'POST', {
+      name:    document.getElementById('c-name').value,
+      deposit: document.getElementById('c-deposit').value,
+      pin:     document.getElementById('c-pin').value
+    });
+    const extra = data.accountNumber
+      ? `<br><strong>Account number: ${data.accountNumber}</strong> — save this!<br>Holder: ${data.name}`
+      : '';
+    showResult('r-create', data, extra);
+  }
+
+  /* ── Deposit ─────────────────────────────────── */
+  async function deposit() {
+    const data = await api('deposit', 'POST', {
+      accountNumber: document.getElementById('d-acc').value,
+      amount:        document.getElementById('d-amount').value
+    });
+    const extra = data.balance !== undefined
+      ? `<br><strong>${data.accountHolder}</strong><br>New balance: UGX ${data.balance.toLocaleString()}`
+      : '';
+    showResult('r-deposit', data, extra);
+  }
+
+  /* ── Withdraw ────────────────────────────────── */
+  async function withdraw() {
+    const data = await api('withdraw', 'POST', {
+      accountNumber: document.getElementById('w-acc').value,
+      amount:        document.getElementById('w-amount').value,
+      pin:           document.getElementById('w-pin').value
+    });
+    const extra = data.balance !== undefined
+      ? `<br><strong>${data.accountHolder}</strong><br>New balance: UGX ${data.balance.toLocaleString()}`
+      : '';
+    showResult('r-withdraw', data, extra);
+  }
+
+  /* ── Transfer ────────────────────────────────── */
+  async function transfer() {
+    const data = await api('transfer', 'POST', {
+      fromAccount: document.getElementById('t-from').value,
+      toAccount:   document.getElementById('t-to').value,
+      amount:      document.getElementById('t-amount').value,
+      pin:         document.getElementById('t-pin').value
+    });
+    const extra = data.newBalance !== undefined
+      ? `<br>Recipient: <strong>${data.recipientName}</strong><br>Your new balance: UGX ${data.newBalance.toLocaleString()}`
+      : '';
+    showResult('r-transfer', data, extra);
+  }
+
+  /* ── Balance ─────────────────────────────────── */
+  async function checkBalance() {
+    const data = await api('balance', 'POST', {
+      accountNumber: document.getElementById('b-acc').value,
+      pin:           document.getElementById('b-pin').value
+    });
+    const el = document.getElementById('r-balance');
+    if (data.status === 'ok') {
+      el.style.display = 'block';
+      el.className = 'result ok';
+      el.innerHTML = `
+        <div class="balance-label">${data.name}</div>
+        <div class="balance-amount">UGX ${data.balance.toLocaleString()}</div>
+        <div class="balance-label">Account #${data.accountNumber}</div>
+      `;
+    } else {
+      showResult('r-balance', data);
+    }
+  }
+
+  /* ── Delete Account ──────────────────────────── */
+  async function deleteAccount() {
+    const confirmed = confirm('⚠️ Are you absolutely sure? This action cannot be undone!');
+    if (!confirmed) return;
+    
+    const data = await api('delete', 'POST', {
+      accountNumber: document.getElementById('del-acc').value,
+      pin:           document.getElementById('del-pin').value
+    });
+    showResult('r-delete', data);
+    if (data.status === 'ok') {
+      setTimeout(() => {
+        document.getElementById('del-acc').value = '';
+        document.getElementById('del-pin').value = '';
+      }, 1000);
+    }
+  }
+
+  /* ── All accounts ────────────────────────────── */
+  async function listAccounts() {
+    const data = await api('list', 'GET');
+    const el = document.getElementById('r-accounts');
+    if (!Array.isArray(data) || data.length === 0) {
+      el.innerHTML = '<p style="color:#888;font-size:0.9rem">No accounts found.</p>';
+      return;
+    }
+    el.innerHTML = `
+      <table>
+        <thead><tr><th>Acc #</th><th>Name</th><th>Balance (UGX)</th></tr></thead>
+        <tbody>
+          ${data.map(a => `
+            <tr>
+              <td>${a.accountNumber}</td>
+              <td>${a.name}</td>
+              <td>${a.balance.toLocaleString()}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  /* ── History ─────────────────────────────────── */
+  async function loadHistory() {
+    const data = await api('history', 'GET');
+    const el = document.getElementById('r-history');
+    if (!Array.isArray(data) || data.length === 0) {
+      el.innerHTML = '<p style="color:#888;font-size:0.9rem">No transactions yet.</p>';
+      return;
+    }
+    el.innerHTML = `
+      <table>
+        <thead><tr><th>Acc #</th><th>Type</th><th>Amount (UGX)</th></tr></thead>
+        <tbody>
+          ${data.map(t => `
+            <tr>
+              <td>${t.account}</td>
+              <td>${t.type}</td>
+              <td>${t.amount.toLocaleString()}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  }
+</script>
+</body>
+</html>

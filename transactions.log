@@ -1,0 +1,3 @@
+{"account":1001,"type":"CREATED","amount":10000.00}
+{"account":1001,"type":"DEPOSIT","amount":20000.00}
+{"account":1001,"type":"WITHDRAWAL","amount":10000.00}
