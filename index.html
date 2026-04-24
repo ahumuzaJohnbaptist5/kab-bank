@@ -141,12 +141,12 @@
 </header>
 
 <nav>
-  <button class="active" onclick="showTab('admin')">🔐 Admin Login</button>
+  <button class="active" onclick="showTab('login')">🔑 Login</button>
+  <button onclick="showTab('admin')">🔐 Admin</button>
   <button onclick="showTab('create')">Create Account</button>
   <button onclick="showTab('deposit')">Deposit</button>
   <button onclick="showTab('withdraw')">Withdraw</button>
   <button onclick="showTab('transfer')">Transfer</button>
-  <button onclick="showTab('balance')">Balance</button>
   <button onclick="showTab('delete')">Delete Account</button>
   <button onclick="showTab('accounts')">All Accounts</button>
   <button onclick="showTab('history')">History</button>
@@ -154,8 +154,44 @@
 
 <main>
 
+  <!-- Login -->
+  <div id="tab-login" class="section active">
+    <div class="card">
+      <h2>🔑 Account Login</h2>
+      <label>Account Number</label>
+      <input id="login-acc" type="number" placeholder="e.g. 1001"/>
+      <label>PIN</label>
+      <input id="login-pin" type="password" maxlength="4" placeholder="****"/>
+      <button class="btn" onclick="customerLogin()">Login</button>
+      <div id="r-login" class="result"></div>
+    </div>
+  </div>
+
+  <!-- Dashboard (shown after login) -->
+  <div id="tab-dashboard" class="section" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <h2 id="dashboard-name"></h2>
+          <p style="color:#888;font-size:0.9rem">Account #<span id="dashboard-accnum"></span></p>
+        </div>
+        <button class="btn" style="width:auto;background:#e94560;margin:0" onclick="logout()">Logout</button>
+      </div>
+      <div style="background:#f0f3f8;padding:1.2rem;border-radius:8px;margin-top:1.2rem">
+        <p style="font-size:0.82rem;color:#555;margin-bottom:0.5rem">Current Balance</p>
+        <p id="dashboard-balance" style="font-size:2rem;font-weight:700;color:#0f3460">UGX 0</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:1.5rem">
+        <button class="btn" style="margin:0" onclick="showTab('deposit')">💰 Deposit</button>
+        <button class="btn" style="margin:0" onclick="showTab('withdraw')">💸 Withdraw</button>
+        <button class="btn" style="margin:0" onclick="showTab('transfer')">🔄 Transfer</button>
+        <button class="btn" style="margin:0;background:#e94560" onclick="showTab('delete')">🗑️ Delete</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Admin Login -->
-  <div id="tab-admin" class="section active">
+  <div id="tab-admin" class="section">
     <div class="card">
       <h2>🔐 Admin Access</h2>
       <label>Admin Password</label>
@@ -278,6 +314,9 @@
 </main>
 
 <script>
+  // ── Global state for logged-in user ──
+  let currentUser = null;
+
   /* ── Tab switching ───────────────────────────── */
   function showTab(name) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -305,6 +344,59 @@
       el.className = 'result error';
       el.innerHTML = data.message || 'An error occurred.';
     }
+  }
+
+  /* ── Customer Login ──────────────────────────── */
+  async function customerLogin() {
+    const accNum = document.getElementById('login-acc').value;
+    const pin = document.getElementById('login-pin').value;
+
+    if (!accNum || !pin) {
+      document.getElementById('r-login').innerHTML = 'Please enter account number and PIN';
+      document.getElementById('r-login').className = 'result error';
+      document.getElementById('r-login').style.display = 'block';
+      return;
+    }
+
+    const data = await api('balance', 'POST', {
+      accountNumber: accNum,
+      pin: pin
+    });
+
+    if (data.status === 'ok') {
+      currentUser = {
+        accountNumber: data.accountNumber,
+        name: data.name,
+        balance: data.balance
+      };
+      updateDashboard();
+      document.getElementById('tab-login').classList.remove('active');
+      document.getElementById('tab-dashboard').classList.add('active');
+      document.getElementById('tab-dashboard').style.display = 'block';
+      document.getElementById('login-acc').value = '';
+      document.getElementById('login-pin').value = '';
+      document.getElementById('r-login').style.display = 'none';
+    } else {
+      showResult('r-login', data);
+    }
+  }
+
+  /* ── Update Dashboard ────────────────────────– */
+  function updateDashboard() {
+    if (!currentUser) return;
+    document.getElementById('dashboard-name').textContent = currentUser.name;
+    document.getElementById('dashboard-accnum').textContent = currentUser.accountNumber;
+    document.getElementById('dashboard-balance').textContent = 'UGX ' + currentUser.balance.toLocaleString();
+  }
+
+  /* ── Logout ──────────────────────────────────– */
+  function logout() {
+    currentUser = null;
+    document.getElementById('tab-dashboard').style.display = 'none';
+    document.getElementById('tab-login').classList.add('active');
+    document.getElementById('tab-login').style.display = 'block';
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('nav button')[0].classList.add('active');
   }
 
   /* ── Admin Login ─────────────────────────────── */
